@@ -9,7 +9,7 @@ use std::time::{Duration, Instant};
 use futures::{Async, Future, Poll};
 use futures::future::{Executor};
 use http::uri::Scheme;
-use net2::TcpBuilder;
+//use net2::TcpBuilder;
 use tokio_reactor::Handle;
 use tokio_tcp::{TcpStream, ConnectFuture};
 use tokio_timer::{Delay, Timeout};
@@ -583,44 +583,8 @@ enum MaybeTimedConnectFuture {
 }
 
 fn connect(addr: &SocketAddr, local_addr: &Option<IpAddr>, handle: &Option<Handle>, reuse_address: bool, connect_timeout: Option<Duration>) -> io::Result<MaybeTimedConnectFuture> {
-    let builder = match addr {
-        &SocketAddr::V4(_) => TcpBuilder::new_v4()?,
-        &SocketAddr::V6(_) => TcpBuilder::new_v6()?,
-    };
-
-    if reuse_address {
-        builder.reuse_address(reuse_address)?;
-    }
-
-    if let Some(ref local_addr) = *local_addr {
-        // Caller has requested this socket be bound before calling connect
-        builder.bind(SocketAddr::new(local_addr.clone(), 0))?;
-    }
-    else if cfg!(windows) {
-        // Windows requires a socket be bound before calling connect
-        let any: SocketAddr = match addr {
-            &SocketAddr::V4(_) => {
-                ([0, 0, 0, 0], 0).into()
-            },
-            &SocketAddr::V6(_) => {
-                ([0, 0, 0, 0, 0, 0, 0, 0], 0).into()
-            }
-        };
-        builder.bind(any)?;
-    }
-
-    let handle = match *handle {
-        Some(ref handle) => Cow::Borrowed(handle),
-        None => Cow::Owned(Handle::default()),
-    };
-
-    let stream = TcpStream::connect_std(builder.to_tcp_stream()?, addr, &handle);
-
-    if let Some(timeout) = connect_timeout {
-        Ok(MaybeTimedConnectFuture::Timed(Timeout::new(stream, timeout)))
-    } else {
-        Ok(MaybeTimedConnectFuture::Untimed(stream))
-    }
+    
+    Err(From::from(io::ErrorKind::Other))
 }
 
 impl ConnectingTcp {
